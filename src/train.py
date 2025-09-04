@@ -5,16 +5,21 @@ import time
 from sklearn.metrics import accuracy_score
 
 import parameter
+import torch.optim as optim
 
 parameter._init()
 
-def train(epochs, lr, model, cuda, train_loader, test_loader, out_features, model_savepath, log_path):
-    if cuda == 'cuda0':
+def train(epochs, lr, model, device_key, train_loader, test_loader, out_features, model_savepath, log_path):
+    if device_key == 'cuda0' and torch.cuda.is_available():
         device = torch.device("cuda:0")
-    if cuda == 'cuda1':
+    elif device_key == 'cuda1' and torch.cuda.is_available():
         device = torch.device("cuda:1")
+    else:
+        device = torch.device("cpu")
+
     if model == 'WPANet':
         net = WPANet(out_features).to(device)
+
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=lr)
     max_acc = 0
@@ -54,7 +59,7 @@ def train(epochs, lr, model, cuda, train_loader, test_loader, out_features, mode
                 gty = np.concatenate( (gty, gtlabels) )
         acc1 = accuracy_score(gty, y_pred_test)
         if acc1 > max_acc:
-            torch.save(net, model_savepath)
+            torch.save(net.state_dict(), model_savepath)
             max_acc = acc1
         time_elapsed = time.time() - since
         sum_time += time_elapsed
@@ -80,7 +85,7 @@ def myTrain(datasetType, model):
     channels = parameter.get_value('channels')
     windowSize = parameter.get_value('windowSize')
     out_features = parameter.get_value('out_features')
-    cuda = parameter.get_value('cuda')
+    cuda = parameter.get_value('device')
     lr = parameter.get_value('lr')
     epoch_nums = parameter.get_value('epoch_nums')
     batch_size = parameter.get_value('batch_size')

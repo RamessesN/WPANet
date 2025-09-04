@@ -1,14 +1,8 @@
-import os
-import math
 import torch
-import numbers
 import math
 import torch.nn as nn
-import scipy.io as sio
 from skimage import io
-import torch.optim as optim
-from operator import truediv
-from einops import rearrange 
+from einops import rearrange
 import torch.nn.functional as F
 from torch_wavelets import DWT_2D, IDWT_2D
 import parameter
@@ -212,7 +206,8 @@ class WPANet(nn.Module):
         self.WaveBlock1 = waveBlock(image_size=8, patch_size=1, dim=512, depth=depth[1][0], heads=8, mlp_dim=1024, channels=64, dim_head=64, dropout=0., emb_dropout=0)
         self.WaveBlock2 = waveBlock(image_size=6, patch_size=1, dim=512, depth=depth[1][1], heads=8, mlp_dim=1024, channels=128, dim_head=64, dropout=0., emb_dropout=0)
         self.WaveBlock3 = waveBlock(image_size=4, patch_size=1, dim=512, depth=depth[1][2], heads=8, mlp_dim=1024, channels=256, dim_head=64, dropout=0., emb_dropout=0)
-        self.CDFBlock1 = CDFBlock(4, 64)
+        # self.CDFBlock1 = CDFBlock(4, 64)
+        self.CDFBlock1 = CDFBlock(1, 64)
         self.CDFBlock2 = CDFBlock(64, 128)
         self.CDFBlock3 = CDFBlock(128, 256)
         self.drop_hsi = nn.Dropout(0.6)
