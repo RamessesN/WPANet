@@ -81,13 +81,16 @@ class WaveAttention(nn.Module):
         B, N, C = x.shape
         H = W = int(math.sqrt(N))
         q = self.q(x).reshape(B, N, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3)
-        x = x.view(B, H, W, C).permute(0, 3, 1, 2)
+        x = x.view(B, H, W, C).permute(0, 3, 1, 2).contiguous()
         x_dwt = self.dwt(self.reduce(x))
         x_dwt = self.filter(x_dwt)
         x_idwt = self.idwt(x_dwt)
+
+        x_idwt = x_idwt.contiguous()
         x_idwt = x_idwt.view(B, -1, x_idwt.size(-2)*x_idwt.size(-1)).transpose(1, 2)
-        kv = self.kv_embed(x_dwt).reshape(B, C, -1).permute(0, 2, 1)
-        kv = self.kv(kv).reshape(B, -1, int(H/2), self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
+
+        kv = self.kv_embed(x_idwt).reshape(B, C, -1).permute(0, 2, 1)
+        kv = self.kv(kv).reshape(B, -1, int(H/2), self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4).contiguous()
         k, v = kv[0], kv[1]
         attn = (q @ k.transpose(-2, -1)) * self.scale
         attn = attn.softmax(dim=-1)
@@ -229,8 +232,12 @@ class WPANet(nn.Module):
         hsi_feat3 = self.hsi_conv3(hsi_feat2)
         hsi_feat3 = hsi_feat3 + self.WaveBlock3(hsi_feat3)
         hsi_feat3, sar_feat3 = self.CDFBlock3(hsi_feat3, sar_feat2)
-        hsi_feat4 = hsi_feat3.reshape(-1, hsi_feat3.shape[1], hsi_feat3.shape[2]*hsi_feat3.shape[3])
-        sar_feat4 = sar_feat3.reshape(-1, sar_feat3.shape[1], sar_feat3.shape[2]*sar_feat3.shape[3])
+        hsi_feat4 = hsi_feat3.contiguous().view(
+            -1, hsi_feat3.shape[1], hsi_feat3.shape[2] * hsi_feat3.shape[3]
+        )
+        sar_feat4 = sar_feat3.contiguous().view(
+            -1, sar_feat3.shape[1], sar_feat3.shape[2] * sar_feat3.shape[3]
+        )
         fusion_feat = torch.cat((hsi_feat4, sar_feat4), dim=1)
         hsi_feat = F.max_pool1d(hsi_feat4, kernel_size=4)
         hsi_feat = hsi_feat.reshape(-1, hsi_feat.shape[1] * hsi_feat.shape[2])

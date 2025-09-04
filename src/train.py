@@ -10,10 +10,10 @@ import torch.optim as optim
 parameter._init()
 
 def train(epochs, lr, model, device_key, train_loader, test_loader, out_features, model_savepath, log_path):
-    if device_key == 'cuda0' and torch.cuda.is_available():
+    if device_key == "cuda:0" and torch.cuda.is_available():
         device = torch.device("cuda:0")
-    elif device_key == 'cuda1' and torch.cuda.is_available():
-        device = torch.device("cuda:1")
+    elif device_key == "mps" and torch.mps.is_available():
+        device = torch.device("mps")
     else:
         device = torch.device("cpu")
 

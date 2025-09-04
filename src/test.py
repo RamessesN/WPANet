@@ -7,11 +7,17 @@ import parameter
 parameter._init()
 
 def myTest(datasetType):
-    device_key = parameter.get_value('device')
-    if device_key == 'cuda0':
+    device_str = parameter.get_value('device')
+
+    if device_str == "cuda:0" and torch.cuda.is_available():
         device = torch.device("cuda:0")
-    if device_key == 'cuda1':
-        device = torch.device("cuda:1")
+    elif device_str == "mps" and torch.mps.is_available():
+        device = torch.device("mps")
+    else:
+        device = torch.device("cpu")
+
+    print(f"[Test] Using device: {device}")
+
     channels = parameter.get_value('channels')
     windowSize = parameter.get_value('windowSize')
     batch_size = parameter.get_value('batch_size')

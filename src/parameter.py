@@ -1,5 +1,15 @@
+import torch
+
 def _init():  # 初始化
     global parameter
+
+    if torch.cuda.is_available():
+        device_str = "cuda:0"
+    elif hasattr(torch, "mps") and torch.mps.is_available():
+        device_str = "mps"
+    else:
+        device_str = "cpu"
+
     parameter = {
         # net
         'channels': 30,
@@ -7,14 +17,14 @@ def _init():  # 初始化
         'out_features': [15, 20, 6, 8, 7],
         'depth': [[2,2,2],[2,2,2],2],
         # train
-        'device': 'cuda0',
+        'device': device_str,
         'lr': 0.00001,
         'epoch_nums': 10,
-        'batch_size': 128,
-        'num_workers': 3,
+        'batch_size': 36,
+        'num_workers': 2,
         'random_seed': 6,
         'visualization': False,
-        'model_savepath': ['../model/Houston2013_model.pt',
+        'model_savepath': ['../model/Houston2013_model.pth',
                            '../model/Houston2018_model.pth',
                            '../model/Trento_model.pth',
                            '../model/Berlin_model.pth',

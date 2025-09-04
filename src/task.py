@@ -8,12 +8,14 @@ parameter._init()
 def myTask(lr, epoch_nums, datasetType):
     parameter.set_value('epoch_nums', epoch_nums)
     parameter.set_value('lr', lr)
-    parameter.set_value('device', device)
     parameter.set_value('visualization', visualization)
+
+    print(f"Using device: {parameter.get_value('device')}")
+
     myTrain(datasetType, net)
     myTest(datasetType)
 
-device = 'cuda0'
+device = 'auto'
 net = 'WPANet'
 visualization = False
 
